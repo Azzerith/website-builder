@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"website-builder/models"
-	"website-builder/websocket"
+	ws "website-builder/websocket"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -15,14 +15,13 @@ import (
 
 type ProjectController struct {
 	db  *gorm.DB
-	hub *websocket.Hub
+	hub *ws.Hub
 }
 
-func NewProjectController(db *gorm.DB, hub *websocket.Hub) *ProjectController {
+func NewProjectController(db *gorm.DB, hub *ws.Hub) *ProjectController {
 	return &ProjectController{db: db, hub: hub}
 }
 
-// CreateProject handles project creation
 func (pc *ProjectController) CreateProject(c *gin.Context) {
 	var input struct {
 		Name       string `json:"name" binding:"required"`
@@ -35,7 +34,6 @@ func (pc *ProjectController) CreateProject(c *gin.Context) {
 		return
 	}
 
-	// Get user ID from context (set by auth middleware)
 	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -56,13 +54,10 @@ func (pc *ProjectController) CreateProject(c *gin.Context) {
 		return
 	}
 
-	// Broadcast project creation to team members
 	pc.notifyTeam(project.TeamID, "project_created", project)
-
 	c.JSON(http.StatusCreated, project)
 }
 
-// GetProject retrieves a single project
 func (pc *ProjectController) GetProject(c *gin.Context) {
 	projectID := c.Param("id")
 
@@ -73,8 +68,7 @@ func (pc *ProjectController) GetProject(c *gin.Context) {
 		return
 	}
 
-	// Check if user has access to this project
-	if !pc.hasProjectAccess(c, project.TeamID) {
+	if !pc.hasTeamAccess(c, project.TeamID) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
 		return
 	}
@@ -82,7 +76,6 @@ func (pc *ProjectController) GetProject(c *gin.Context) {
 	c.JSON(http.StatusOK, project)
 }
 
-// UpdateProject handles project updates
 func (pc *ProjectController) UpdateProject(c *gin.Context) {
 	projectID := c.Param("id")
 
@@ -103,13 +96,11 @@ func (pc *ProjectController) UpdateProject(c *gin.Context) {
 		return
 	}
 
-	// Check if user has access to this project
-	if !pc.hasProjectAccess(c, project.TeamID) {
+	if !pc.hasTeamAccess(c, project.TeamID) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
 		return
 	}
 
-	// Update fields
 	if input.Name != "" {
 		project.Name = input.Name
 	}
@@ -125,13 +116,10 @@ func (pc *ProjectController) UpdateProject(c *gin.Context) {
 		return
 	}
 
-	// Broadcast update to team members
 	pc.notifyTeam(project.TeamID, "project_updated", project)
-
 	c.JSON(http.StatusOK, project)
 }
 
-// DeleteProject handles project deletion
 func (pc *ProjectController) DeleteProject(c *gin.Context) {
 	projectID := c.Param("id")
 
@@ -141,8 +129,7 @@ func (pc *ProjectController) DeleteProject(c *gin.Context) {
 		return
 	}
 
-	// Check if user has access to this project
-	if !pc.hasProjectAccess(c, project.TeamID) {
+	if !pc.hasTeamAccess(c, project.TeamID) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
 		return
 	}
@@ -152,13 +139,10 @@ func (pc *ProjectController) DeleteProject(c *gin.Context) {
 		return
 	}
 
-	// Broadcast deletion to team members
 	pc.notifyTeam(project.TeamID, "project_deleted", project.ID)
-
 	c.JSON(http.StatusOK, gin.H{"message": "Project deleted successfully"})
 }
 
-// GetProjects lists all projects for a team
 func (pc *ProjectController) GetProjects(c *gin.Context) {
 	teamID := c.Query("team_id")
 	if teamID == "" {
@@ -166,7 +150,6 @@ func (pc *ProjectController) GetProjects(c *gin.Context) {
 		return
 	}
 
-	// Check if user has access to this team
 	if !pc.hasTeamAccess(c, teamID) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
 		return
@@ -181,12 +164,10 @@ func (pc *ProjectController) GetProjects(c *gin.Context) {
 	c.JSON(http.StatusOK, projects)
 }
 
-// Helper function to check project access
 func (pc *ProjectController) hasProjectAccess(c *gin.Context, teamID string) bool {
 	return pc.hasTeamAccess(c, teamID)
 }
 
-// Helper function to check team access
 func (pc *ProjectController) hasTeamAccess(c *gin.Context, teamID string) bool {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -201,7 +182,6 @@ func (pc *ProjectController) hasTeamAccess(c *gin.Context, teamID string) bool {
 	return count > 0
 }
 
-// Helper function to notify team members
 func (pc *ProjectController) notifyTeam(teamID string, event string, data interface{}) {
 	message := map[string]interface{}{
 		"event": event,
@@ -214,7 +194,6 @@ func (pc *ProjectController) notifyTeam(teamID string, event string, data interf
 		return
 	}
 
-	// Broadcast to all connected clients in the team
-	// In a real implementation, you would need to track which clients belong to which team
+	// ✅ Broadcast via channel, bukan method
 	pc.hub.Broadcast <- jsonMessage
 }
