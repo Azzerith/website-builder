@@ -3,6 +3,7 @@ package routes
 import (
 	"website-builder/controllers"
 	"website-builder/middleware"
+	"website-builder/websocket"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -10,20 +11,31 @@ import (
 
 func SetupRoutes(r *gin.Engine, db *gorm.DB, hub *websocket.Hub) {
 	// Initialize controllers
+	authController := controllers.NewAuthController(db)
 	projectController := controllers.NewProjectController(db, hub)
 
-	// API routes with auth middleware
-	api := r.Group("/api", middleware.AuthMiddleware())
+	// Public routes (no auth required)
+	api := r.Group("/api")
 	{
+		api.POST("/login", authController.Login)
+		api.POST("/register", authController.Register)
+	}
+
+	// Protected routes (require auth)
+	protected := r.Group("/api", middleware.AuthMiddleware())
+	{
+		// User routes
+		protected.GET("/me", authController.GetCurrentUser)
+
 		// Project routes
-		api.POST("/projects", projectController.CreateProject)
-		api.GET("/projects", projectController.GetProjects)
-		api.GET("/projects/:id", projectController.GetProject)
-		api.PUT("/projects/:id", projectController.UpdateProject)
-		api.DELETE("/projects/:id", projectController.DeleteProject)
+		protected.POST("/projects", projectController.CreateProject)
+		protected.GET("/projects", projectController.GetProjects)
+		protected.GET("/projects/:id", projectController.GetProject)
+		protected.PUT("/projects/:id", projectController.UpdateProject)
+		protected.DELETE("/projects/:id", projectController.DeleteProject)
 
 		// WebSocket route
-		api.GET("/ws", func(c *gin.Context) {
+		protected.GET("/ws", func(c *gin.Context) {
 			controllers.WebSocketHandler(c, hub)
 		})
 	}

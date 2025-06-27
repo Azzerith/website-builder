@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"website-builder/utils"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -21,21 +22,13 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Validate token and extract user ID
-		userID, err := validateToken(tokenString)
+		claims, err := utils.ValidateJWT(tokenString)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			return
 		}
 
-		// Set user ID in context
-		c.Set("userID", userID)
+		c.Set("userID", claims.UserID)
 		c.Next()
 	}
-}
-
-func validateToken(tokenString string) (string, error) {
-	// Implement your token validation logic here
-	// This is a placeholder - use your actual JWT or session validation
-	return "user123", nil // Return actual user ID from token
 }

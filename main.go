@@ -45,7 +45,8 @@ func main() {
 	go hub.Run()
 
 	// Pass hub to routes
-	routes.SetupRoutes(r, hub)
+	routes.SetupRoutes(r, config.DB, hub)
+
 
 	// Get port from environment or use default
 	port := os.Getenv("PORT")

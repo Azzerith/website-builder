@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strconv"
 
 	"website-builder/models"
 	"website-builder/websocket"
@@ -26,8 +25,8 @@ func NewProjectController(db *gorm.DB, hub *websocket.Hub) *ProjectController {
 // CreateProject handles project creation
 func (pc *ProjectController) CreateProject(c *gin.Context) {
 	var input struct {
-		Name      string `json:"name" binding:"required"`
-		TeamID    string `json:"team_id" binding:"required"`
+		Name       string `json:"name" binding:"required"`
+		TeamID     string `json:"team_id" binding:"required"`
 		TemplateID string `json:"template_id"`
 	}
 
@@ -44,12 +43,12 @@ func (pc *ProjectController) CreateProject(c *gin.Context) {
 	}
 
 	project := models.Project{
-		ID:        uuid.New().String(),
-		Name:      input.Name,
-		TeamID:    input.TeamID,
-		CreatedBy: userID.(string),
+		ID:         uuid.New().String(),
+		Name:       input.Name,
+		TeamID:     input.TeamID,
+		CreatedBy:  userID.(string),
 		TemplateID: &input.TemplateID,
-		Status:    models.Draft,
+		Status:     models.Draft,
 	}
 
 	if err := pc.db.Create(&project).Error; err != nil {
@@ -88,9 +87,9 @@ func (pc *ProjectController) UpdateProject(c *gin.Context) {
 	projectID := c.Param("id")
 
 	var input struct {
-		Name   string           `json:"name"`
+		Name   string               `json:"name"`
 		Status models.ProjectStatus `json:"status"`
-		Domain string           `json:"domain"`
+		Domain string               `json:"domain"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
