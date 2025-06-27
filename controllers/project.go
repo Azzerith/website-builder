@@ -216,5 +216,5 @@ func (pc *ProjectController) notifyTeam(teamID string, event string, data interf
 
 	// Broadcast to all connected clients in the team
 	// In a real implementation, you would need to track which clients belong to which team
-	pc.hub.Broadcast(jsonMessage)
+	pc.hub.Broadcast <- jsonMessage
 }
