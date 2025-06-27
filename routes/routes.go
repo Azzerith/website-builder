@@ -13,6 +13,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, hub *websocket.Hub) {
 	// Initialize controllers
 	authController := controllers.NewAuthController(db)
 	projectController := controllers.NewProjectController(db, hub)
+	elementController := controllers.NewElementController(db)
 
 	// Public routes (no auth required)
 	api := r.Group("/api")
@@ -33,6 +34,12 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, hub *websocket.Hub) {
 		protected.GET("/projects/:id", projectController.GetProject)
 		protected.PUT("/projects/:id", projectController.UpdateProject)
 		protected.DELETE("/projects/:id", projectController.DeleteProject)
+
+		protected.POST("/elements", elementController.CreateElement)
+	protected.GET("/elements/:id", elementController.GetElement)
+	protected.PUT("/elements/:id", elementController.UpdateElement)
+	protected.DELETE("/elements/:id", elementController.DeleteElement)
+	protected.GET("/elements", elementController.ListElements)
 
 		// WebSocket route
 		protected.GET("/ws", func(c *gin.Context) {

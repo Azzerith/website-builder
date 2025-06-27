@@ -63,32 +63,24 @@ func main() {
 }
 
 func getOriginsFromEnv() []string {
-	// Default origins for development
 	defaultOrigins := []string{
-		"http://localhost:5173", 
+		"http://localhost:5173",
 		"http://localhost:5174",
 		"http://127.0.0.1:5173",
-		"ws://localhost:5173",
 	}
 
-	// Get additional origins from environment
 	envOrigins := os.Getenv("ALLOWED_ORIGINS")
 	if envOrigins == "" {
 		return defaultOrigins
 	}
 
-	// Split multiple origins separated by comma
 	var origins []string
 	for _, origin := range strings.Split(envOrigins, ",") {
 		trimmed := strings.TrimSpace(origin)
-		if trimmed != "" {
+		if trimmed != "" && (strings.HasPrefix(trimmed, "http://") || strings.HasPrefix(trimmed, "https://") || trimmed == "*") {
 			origins = append(origins, trimmed)
-			// Also add WebSocket version if it's http
-			if strings.HasPrefix(trimmed, "http://") {
-				origins = append(origins, strings.Replace(trimmed, "http://", "ws://", 1))
-			} else if strings.HasPrefix(trimmed, "https://") {
-				origins = append(origins, strings.Replace(trimmed, "https://", "wss://", 1))
-			}
+		} else {
+			log.Printf("Skipping invalid CORS origin: %s", trimmed)
 		}
 	}
 

@@ -164,10 +164,6 @@ func (pc *ProjectController) GetProjects(c *gin.Context) {
 	c.JSON(http.StatusOK, projects)
 }
 
-func (pc *ProjectController) hasProjectAccess(c *gin.Context, teamID string) bool {
-	return pc.hasTeamAccess(c, teamID)
-}
-
 func (pc *ProjectController) hasTeamAccess(c *gin.Context, teamID string) bool {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -194,6 +190,5 @@ func (pc *ProjectController) notifyTeam(teamID string, event string, data interf
 		return
 	}
 
-	// ✅ Broadcast via channel, bukan method
 	pc.hub.Broadcast <- jsonMessage
 }
