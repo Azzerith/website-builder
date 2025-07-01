@@ -73,7 +73,6 @@ func (ac *AuthController) Register(c *gin.Context) {
 		return
 	}
 
-	// Check if email already exists
 	var existingUser models.User
 	if err := ac.db.Where("email = ?", input.Email).First(&existingUser).Error; err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email already registered"})
