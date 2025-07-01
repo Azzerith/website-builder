@@ -15,20 +15,15 @@ import (
 )
 
 func main() {
-	// Load environment variables from .env (for development)
-	// In production, these should be set in the environment
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("Warning: No .env file found, using environment variables")
 	}
 
-	// Initialize database
 	config.InitDB()
 
-	// Set up Gin router
 	r := gin.Default()
 
-	// Get allowed origins from environment
 	allowedOrigins := getOriginsFromEnv()
 
 	// CORS configuration with WebSocket support
@@ -47,13 +42,11 @@ func main() {
 	// Pass hub to routes
 	routes.SetupRoutes(r, config.DB, hub)
 
-
 	// Get port from environment or use default
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-
 	// Run server
 	log.Printf("Server running on port %s", port)
 	log.Printf("Allowed origins: %v", allowedOrigins)
