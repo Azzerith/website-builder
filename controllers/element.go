@@ -18,7 +18,6 @@ func NewElementController(db *gorm.DB) *ElementController {
 	return &ElementController{db: db}
 }
 
-// CreateElement handles element creation
 func (ec *ElementController) CreateElement(c *gin.Context) {
 	var input struct {
 		PageID          string             `json:"page_id" binding:"required"`
@@ -58,7 +57,6 @@ func (ec *ElementController) CreateElement(c *gin.Context) {
 	c.JSON(http.StatusCreated, element)
 }
 
-// GetElement retrieves a single element by ID
 func (ec *ElementController) GetElement(c *gin.Context) {
 	elementID := c.Param("id")
 
@@ -72,7 +70,6 @@ func (ec *ElementController) GetElement(c *gin.Context) {
 	c.JSON(http.StatusOK, element)
 }
 
-// UpdateElement updates element fields
 func (ec *ElementController) UpdateElement(c *gin.Context) {
 	elementID := c.Param("id")
 
