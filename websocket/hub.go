@@ -57,7 +57,6 @@ func (h *Hub) Run() {
 }
 
 func (c *Client) ReadPump(hub *Hub) {
-	// isi sesuai kebutuhan, contoh sederhana:
 	for {
 		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
