@@ -15,7 +15,6 @@ import (
 var DB *gorm.DB
 
 func InitDB() {
-	// Load DB config from environment variables
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
 	host := os.Getenv("DB_HOST")
